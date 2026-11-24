@@ -53,7 +53,7 @@ jobs:
           version: ${{ needs.get-version.outputs.version }}
           ref: ${{ github.event.pull_request.merge_commit_sha }}
           branch: main
-          sonar-token: ${{ secrets.LIS_SONAR_TOKEN }}
+          sonar-token: ${{ secrets.TMP_SONAR_TOKEN || secrets.LIS_SONAR_TOKEN }}
 
   create-tag:
     name: 'Tag Main'

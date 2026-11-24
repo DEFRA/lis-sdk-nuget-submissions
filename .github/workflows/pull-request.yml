@@ -51,7 +51,7 @@ jobs:
         with:
           version: ${{ needs.get-version.outputs.version }}
           ref: ${{ github.event.pull_request.head.sha }}
-          sonar-token: ${{ secrets.LIS_SONAR_TOKEN }}
+          sonar-token: ${{ secrets.TMP_SONAR_TOKEN || secrets.LIS_SONAR_TOKEN }}
 
   required-checks:
     name: 'Pull Request Validation'
