@@ -1,0 +1,129 @@
+#nullable enable
+const Defra.Livestock.Sdk.Submissions.Endpoints.SubmissionEndpoints.DefaultRoutePrefix = "submission" -> string!
+const Defra.Livestock.Sdk.Submissions.Models.PropertyTypes.Bool = "BOOL" -> string!
+const Defra.Livestock.Sdk.Submissions.Models.PropertyTypes.Date = "DATE" -> string!
+const Defra.Livestock.Sdk.Submissions.Models.PropertyTypes.Int = "INT" -> string!
+const Defra.Livestock.Sdk.Submissions.Models.PropertyTypes.Number = "NUMBER" -> string!
+const Defra.Livestock.Sdk.Submissions.Models.PropertyTypes.String = "STRING" -> string!
+const Defra.Livestock.Sdk.Submissions.Models.SubmissionStatus.Draft = "DRAFT" -> string!
+const Defra.Livestock.Sdk.Submissions.Models.SubmissionStatus.Submitted = "SUBMITTED" -> string!
+Defra.Livestock.Sdk.Submissions.Endpoints.SubmissionEndpoints
+Defra.Livestock.Sdk.Submissions.Exceptions.BusinessRuleException
+Defra.Livestock.Sdk.Submissions.Exceptions.BusinessRuleException.BusinessRuleException(string! message) -> void
+Defra.Livestock.Sdk.Submissions.Models.AnimalRequest
+Defra.Livestock.Sdk.Submissions.Models.AnimalRequest.AnimalRequest() -> void
+Defra.Livestock.Sdk.Submissions.Models.AnimalRequest.Data.get -> Defra.Livestock.Sdk.Submissions.Models.DataItem![]!
+Defra.Livestock.Sdk.Submissions.Models.AnimalRequest.Data.init -> void
+Defra.Livestock.Sdk.Submissions.Models.AnimalRequest.Status.get -> Defra.Livestock.Sdk.Submissions.Models.ItemStatus
+Defra.Livestock.Sdk.Submissions.Models.AnimalRequest.Status.init -> void
+Defra.Livestock.Sdk.Submissions.Models.AnimalResponse
+Defra.Livestock.Sdk.Submissions.Models.AnimalResponse.AnimalId.get -> string!
+Defra.Livestock.Sdk.Submissions.Models.AnimalResponse.AnimalId.init -> void
+Defra.Livestock.Sdk.Submissions.Models.AnimalResponse.AnimalResponse() -> void
+Defra.Livestock.Sdk.Submissions.Models.AnimalResponse.Data.get -> Defra.Livestock.Sdk.Submissions.Models.DataItem![]!
+Defra.Livestock.Sdk.Submissions.Models.AnimalResponse.Data.init -> void
+Defra.Livestock.Sdk.Submissions.Models.AnimalResponse.Status.get -> Defra.Livestock.Sdk.Submissions.Models.ItemStatus
+Defra.Livestock.Sdk.Submissions.Models.AnimalResponse.Status.init -> void
+Defra.Livestock.Sdk.Submissions.Models.DataItem
+Defra.Livestock.Sdk.Submissions.Models.DataItem.DataItem() -> void
+Defra.Livestock.Sdk.Submissions.Models.DataItem.Key.get -> string!
+Defra.Livestock.Sdk.Submissions.Models.DataItem.Key.init -> void
+Defra.Livestock.Sdk.Submissions.Models.DataItem.Type.get -> string!
+Defra.Livestock.Sdk.Submissions.Models.DataItem.Type.init -> void
+Defra.Livestock.Sdk.Submissions.Models.DataItem.Value.get -> string?
+Defra.Livestock.Sdk.Submissions.Models.DataItem.Value.init -> void
+Defra.Livestock.Sdk.Submissions.Models.ItemStatus
+Defra.Livestock.Sdk.Submissions.Models.ItemStatus.Complete = 1 -> Defra.Livestock.Sdk.Submissions.Models.ItemStatus
+Defra.Livestock.Sdk.Submissions.Models.ItemStatus.Draft = 0 -> Defra.Livestock.Sdk.Submissions.Models.ItemStatus
+Defra.Livestock.Sdk.Submissions.Models.ItemStatus.Error = 2 -> Defra.Livestock.Sdk.Submissions.Models.ItemStatus
+Defra.Livestock.Sdk.Submissions.Models.ItemStatusJsonConverter
+Defra.Livestock.Sdk.Submissions.Models.ItemStatusJsonConverter.ItemStatusJsonConverter() -> void
+Defra.Livestock.Sdk.Submissions.Models.PropertyTypes
+Defra.Livestock.Sdk.Submissions.Models.SubmissionAnimalDocument
+Defra.Livestock.Sdk.Submissions.Models.SubmissionAnimalDocument.AnimalId.get -> string!
+Defra.Livestock.Sdk.Submissions.Models.SubmissionAnimalDocument.AnimalId.init -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionAnimalDocument.Data.get -> System.Collections.Generic.List<Defra.Livestock.Sdk.Submissions.Models.SubmissionDataItemDocument!>!
+Defra.Livestock.Sdk.Submissions.Models.SubmissionAnimalDocument.Data.set -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionAnimalDocument.Status.get -> Defra.Livestock.Sdk.Submissions.Models.ItemStatus
+Defra.Livestock.Sdk.Submissions.Models.SubmissionAnimalDocument.Status.set -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionAnimalDocument.SubmissionAnimalDocument() -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionAnimalSummary
+Defra.Livestock.Sdk.Submissions.Models.SubmissionAnimalSummary.AnimalId.get -> string!
+Defra.Livestock.Sdk.Submissions.Models.SubmissionAnimalSummary.AnimalId.init -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionAnimalSummary.Status.get -> Defra.Livestock.Sdk.Submissions.Models.ItemStatus
+Defra.Livestock.Sdk.Submissions.Models.SubmissionAnimalSummary.Status.init -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionAnimalSummary.SubmissionAnimalSummary() -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionDataItemDocument
+Defra.Livestock.Sdk.Submissions.Models.SubmissionDataItemDocument.Key.get -> string!
+Defra.Livestock.Sdk.Submissions.Models.SubmissionDataItemDocument.Key.init -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionDataItemDocument.SubmissionDataItemDocument() -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionDataItemDocument.Type.get -> string!
+Defra.Livestock.Sdk.Submissions.Models.SubmissionDataItemDocument.Type.init -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionDataItemDocument.Value.get -> string?
+Defra.Livestock.Sdk.Submissions.Models.SubmissionDataItemDocument.Value.init -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionDocument
+Defra.Livestock.Sdk.Submissions.Models.SubmissionDocument.Animals.get -> System.Collections.Generic.List<Defra.Livestock.Sdk.Submissions.Models.SubmissionAnimalDocument!>!
+Defra.Livestock.Sdk.Submissions.Models.SubmissionDocument.Animals.set -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionDocument.Cph.get -> string!
+Defra.Livestock.Sdk.Submissions.Models.SubmissionDocument.Cph.init -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionDocument.CreatedDate.get -> System.DateTime
+Defra.Livestock.Sdk.Submissions.Models.SubmissionDocument.CreatedDate.init -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionDocument.HashId.get -> string!
+Defra.Livestock.Sdk.Submissions.Models.SubmissionDocument.HashId.init -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionDocument.Id.get -> string!
+Defra.Livestock.Sdk.Submissions.Models.SubmissionDocument.Id.init -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionDocument.Status.get -> string!
+Defra.Livestock.Sdk.Submissions.Models.SubmissionDocument.Status.set -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionDocument.SubmissionDocument() -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionDocument.SubmittedDate.get -> System.DateTime?
+Defra.Livestock.Sdk.Submissions.Models.SubmissionDocument.SubmittedDate.set -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionDocument.Version.get -> int
+Defra.Livestock.Sdk.Submissions.Models.SubmissionDocument.Version.set -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionListResponse
+Defra.Livestock.Sdk.Submissions.Models.SubmissionListResponse.SubmissionListResponse() -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionListResponse.Submissions.get -> System.Collections.Generic.IReadOnlyCollection<Defra.Livestock.Sdk.Submissions.Models.SubmissionResponse!>!
+Defra.Livestock.Sdk.Submissions.Models.SubmissionListResponse.Submissions.init -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionResponse
+Defra.Livestock.Sdk.Submissions.Models.SubmissionResponse.AnimalCount.get -> int
+Defra.Livestock.Sdk.Submissions.Models.SubmissionResponse.AnimalCount.init -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionResponse.Animals.get -> System.Collections.Generic.IReadOnlyCollection<Defra.Livestock.Sdk.Submissions.Models.SubmissionAnimalSummary!>!
+Defra.Livestock.Sdk.Submissions.Models.SubmissionResponse.Animals.init -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionResponse.CreatedDate.get -> System.DateTimeOffset
+Defra.Livestock.Sdk.Submissions.Models.SubmissionResponse.CreatedDate.init -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionResponse.Status.get -> string!
+Defra.Livestock.Sdk.Submissions.Models.SubmissionResponse.Status.init -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionResponse.SubmissionId.get -> string!
+Defra.Livestock.Sdk.Submissions.Models.SubmissionResponse.SubmissionId.init -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionResponse.SubmissionResponse() -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionResponse.SubmittedDate.get -> System.DateTimeOffset?
+Defra.Livestock.Sdk.Submissions.Models.SubmissionResponse.SubmittedDate.init -> void
+Defra.Livestock.Sdk.Submissions.Models.SubmissionStatus
+Defra.Livestock.Sdk.Submissions.Services.ISubmissionService
+Defra.Livestock.Sdk.Submissions.Services.ISubmissionService.DeleteAnimalAsync(string! cph, string! submissionId, string! animalId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Defra.Livestock.Sdk.Submissions.Services.ISubmissionService.GetAnimalAsync(string! cph, string! submissionId, string! animalId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Defra.Livestock.Sdk.Submissions.Models.AnimalResponse!>!
+Defra.Livestock.Sdk.Submissions.Services.ISubmissionService.GetSubmissionAsync(string! cph, string! submissionId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Defra.Livestock.Sdk.Submissions.Models.SubmissionResponse!>!
+Defra.Livestock.Sdk.Submissions.Services.ISubmissionService.ListAsync(string! cph, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Defra.Livestock.Sdk.Submissions.Models.SubmissionListResponse!>!
+Defra.Livestock.Sdk.Submissions.Services.ISubmissionService.StartAsync(string! cph, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Defra.Livestock.Sdk.Submissions.Models.SubmissionResponse!>!
+Defra.Livestock.Sdk.Submissions.Services.ISubmissionService.SubmitAsync(string! cph, string! submissionId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Defra.Livestock.Sdk.Submissions.Services.ISubmissionService.UpsertAnimalAsync(string! cph, string! submissionId, string! animalId, Defra.Livestock.Sdk.Submissions.Models.AnimalRequest! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Defra.Livestock.Sdk.Submissions.Services.ISubmissionTransfer
+Defra.Livestock.Sdk.Submissions.Services.ISubmissionTransfer.TransferAsync(Defra.Livestock.Sdk.Submissions.Models.SubmissionDocument! submission, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Defra.Livestock.Sdk.Submissions.Services.NotConfiguredSubmissionTransfer
+Defra.Livestock.Sdk.Submissions.Services.NotConfiguredSubmissionTransfer.NotConfiguredSubmissionTransfer() -> void
+Defra.Livestock.Sdk.Submissions.Services.NotConfiguredSubmissionTransfer.TransferAsync(Defra.Livestock.Sdk.Submissions.Models.SubmissionDocument! submission, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Defra.Livestock.Sdk.Submissions.Storage.ISubmissionRepository
+Defra.Livestock.Sdk.Submissions.Storage.ISubmissionRepository.FindDraftAsync(string! cph, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Defra.Livestock.Sdk.Submissions.Models.SubmissionDocument?>!
+Defra.Livestock.Sdk.Submissions.Storage.ISubmissionRepository.GetByHashIdAsync(string! hashId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Defra.Livestock.Sdk.Submissions.Models.SubmissionDocument?>!
+Defra.Livestock.Sdk.Submissions.Storage.ISubmissionRepository.ListAsync(string! cph, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyCollection<Defra.Livestock.Sdk.Submissions.Models.SubmissionDocument!>!>!
+Defra.Livestock.Sdk.Submissions.Storage.ISubmissionRepository.TryInsertDraftAsync(Defra.Livestock.Sdk.Submissions.Models.SubmissionDocument! submission, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<bool>!
+Defra.Livestock.Sdk.Submissions.Storage.ISubmissionRepository.TryReplaceDraftAsync(Defra.Livestock.Sdk.Submissions.Models.SubmissionDocument! submission, int expectedVersion, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<bool>!
+Defra.Livestock.Sdk.Submissions.SubmissionHashId
+Defra.Livestock.Sdk.Submissions.SubmissionOptions
+Defra.Livestock.Sdk.Submissions.SubmissionOptions.CollectionName.get -> string!
+Defra.Livestock.Sdk.Submissions.SubmissionOptions.CollectionName.set -> void
+Defra.Livestock.Sdk.Submissions.SubmissionOptions.SubmissionOptions() -> void
+Defra.Livestock.Sdk.Submissions.SubmissionServiceCollectionExtensions
+static Defra.Livestock.Sdk.Submissions.Endpoints.SubmissionEndpoints.MapSubmissionEndpoints(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! app, string! routePrefix = "submission") -> Microsoft.AspNetCore.Routing.RouteGroupBuilder!
+static Defra.Livestock.Sdk.Submissions.Models.PropertyTypes.IsSupported(string! type) -> bool
+static Defra.Livestock.Sdk.Submissions.SubmissionHashId.Normalise(string! id) -> string!
+static Defra.Livestock.Sdk.Submissions.SubmissionServiceCollectionExtensions.AddSubmissions(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Action<Defra.Livestock.Sdk.Submissions.SubmissionOptions!>? configure = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
