@@ -13,12 +13,15 @@ using MongoDB.Bson.Serialization.Attributes;
 internal sealed class SubmissionAnimalDocument
 {
     /// <summary>Gets the animal's id.</summary>
+    [BsonElement("animalId")]
     public required string AnimalId { get; init; }
 
     /// <summary>Gets or sets the animal's status.</summary>
     [BsonRepresentation(BsonType.String)]
+    [BsonElement("status")]
     public required ItemStatus Status { get; set; }
 
     /// <summary>Gets or sets the animal's data items.</summary>
+    [BsonElement("data")]
     public List<SubmissionDataItemDocument> Data { get; set; } = [];
 }

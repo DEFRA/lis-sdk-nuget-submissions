@@ -13,25 +13,33 @@ using MongoDB.Bson.Serialization.Conventions;
 /// </summary>
 internal static class SubmissionMongoConventions
 {
+    private static readonly Lock InitializationLock = new();
+
 #pragma warning disable SA1306
-    private static int Initialized;
+    private static bool Initialized;
 #pragma warning restore SA1306
 
     public static void Register()
     {
-        if (Interlocked.Exchange(ref Initialized, 1) == 1)
+        lock (InitializationLock)
         {
-            return;
+            if (Initialized)
+            {
+                return;
+            }
+
+            var conventions = new ConventionPack
+            {
+                new CamelCaseElementNameConvention(),
+            };
+
+            ConventionRegistry.Register(
+                "Defra.Livestock.Sdk.Submissions",
+                conventions,
+                type => type == typeof(SubmissionDocument)
+                    || type == typeof(SubmissionAnimalDocument)
+                    || type == typeof(SubmissionDataItemDocument));
+            Initialized = true;
         }
-
-        var conventions = new ConventionPack
-        {
-            new CamelCaseElementNameConvention(),
-        };
-
-        ConventionRegistry.Register(
-            "Defra.Livestock.Sdk.Submissions",
-            conventions,
-            type => type.Namespace == typeof(SubmissionDocument).Namespace);
     }
 }
