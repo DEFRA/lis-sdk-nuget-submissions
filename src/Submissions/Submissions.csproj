@@ -11,4 +11,24 @@
   <ItemGroup>
     <Folder Include="Exceptions\" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI.Shipped.txt" />
+  </ItemGroup>
+
+  <!--
+    The public API is tracked in PublicAPI.Shipped.txt only. PublicApiAnalyzers switches itself off unless it also
+    has a PublicAPI.Unshipped.txt, so the build supplies an empty one from obj/ instead of keeping it in the repo.
+  -->
+  <Target Name="AddEmptyPublicApiUnshipped" BeforeTargets="CoreCompile">
+    <PropertyGroup>
+      <_PublicApiUnshippedFile>$(IntermediateOutputPath)PublicAPI.Unshipped.txt</_PublicApiUnshippedFile>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(_PublicApiUnshippedFile)" Lines="#nullable enable" Overwrite="true" WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <AdditionalFiles Include="$(_PublicApiUnshippedFile)" />
+      <FileWrites Include="$(_PublicApiUnshippedFile)" />
+    </ItemGroup>
+  </Target>
 </Project>

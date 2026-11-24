@@ -33,5 +33,5 @@ public static class PropertyTypes
     /// </summary>
     /// <param name="type">The upper-case type.</param>
     /// <returns>True when the type is supported.</returns>
-    public static bool IsSupported(string type) => type is String or Date or Int or Number or Bool;
+    internal static bool IsSupported(string type) => type is String or Date or Int or Number or Bool;
 }

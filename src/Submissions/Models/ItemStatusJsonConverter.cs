@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Serializes animal statuses as strings and rejects integer representations.
 /// </summary>
-public sealed class ItemStatusJsonConverter()
+internal sealed class ItemStatusJsonConverter()
     : JsonStringEnumConverter<ItemStatus>(
         JsonNamingPolicy.CamelCase,
         allowIntegerValues: false);

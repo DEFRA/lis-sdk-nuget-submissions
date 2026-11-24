@@ -24,32 +24,34 @@ public static class SubmissionEndpoints
     /// </summary>
     public const string DefaultRoutePrefix = "submission";
 
-    /// <summary>
-    /// Maps the submission endpoints. The host adds its own authorization and other conventions to the group returned,
-    /// for example <c>app.MapSubmissionEndpoints().RequireAuthorization(policy)</c>.
-    /// </summary>
     /// <param name="app">The endpoint route builder.</param>
-    /// <param name="routePrefix">The route prefix, <c>submission</c> unless given.</param>
-    /// <returns>The route group the endpoints are mapped to.</returns>
-    [SuppressMessage(
-        "S1192",
-        "S1192:String literals should not be duplicated",
-        Justification = "I want the routes to be fully written.")]
-    public static RouteGroupBuilder MapSubmissionEndpoints(this IEndpointRouteBuilder app, string routePrefix = DefaultRoutePrefix)
+    extension(IEndpointRouteBuilder app)
     {
-        return MapEndpoints(app, routePrefix, null);
-    }
+        /// <summary>
+        /// Maps the submission endpoints. The host adds its own authorization and other conventions to the group returned,
+        /// for example <c>app.MapSubmissionEndpoints().RequireAuthorization(policy)</c>.
+        /// </summary>
+        /// <param name="routePrefix">The route prefix, <c>submission</c> unless given.</param>
+        /// <returns>The route group the endpoints are mapped to.</returns>
+        [SuppressMessage(
+            "S1192",
+            "S1192:String literals should not be duplicated",
+            Justification = "I want the routes to be fully written.")]
+        public RouteGroupBuilder MapSubmissionEndpoints(string routePrefix = DefaultRoutePrefix)
+        {
+            return MapEndpoints(app, routePrefix, null);
+        }
 
-    /// <summary>Maps routes to a named installation with unique endpoint names.</summary>
-    /// <param name="app">The endpoint route builder.</param>
-    /// <param name="name">The name passed to AddNamedSubmissions.</param>
-    /// <param name="routePrefix">The installation's route prefix.</param>
-    /// <returns>The route group for host authorization and conventions.</returns>
-    public static RouteGroupBuilder MapNamedSubmissionEndpoints(this IEndpointRouteBuilder app, string name, string routePrefix)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        ArgumentException.ThrowIfNullOrWhiteSpace(routePrefix);
-        return MapEndpoints(app, routePrefix, name);
+        /// <summary>Maps routes to a named installation with unique endpoint names.</summary>
+        /// <param name="name">The name passed to AddNamedSubmissions.</param>
+        /// <param name="routePrefix">The installation's route prefix.</param>
+        /// <returns>The route group for host authorization and conventions.</returns>
+        public RouteGroupBuilder MapNamedSubmissionEndpoints(string name, string routePrefix)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(name);
+            ArgumentException.ThrowIfNullOrWhiteSpace(routePrefix);
+            return MapEndpoints(app, routePrefix, name);
+        }
     }
 
     [SuppressMessage(

@@ -7,7 +7,7 @@ namespace Defra.Livestock.Sdk.Submissions;
 /// <summary>
 /// The id callers use for a submission: a display hash of its GUID, as <c>XXX-XXX-XXX</c>.
 /// </summary>
-public static class SubmissionHashId
+internal static class SubmissionHashId
 {
     /// <summary>
     /// Returns the stored form of an id received from a caller, who may have typed it in lower case or mistaken a

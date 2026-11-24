@@ -1,4 +1,4 @@
-// <copyright file="SubmissionServiceCollectionExtensions.cs" company="Defra">
+// <copyright file="ServiceCollectionExtensions.cs" company="Defra">
 // Copyright (c) Defra. All rights reserved.
 // </copyright>
 
@@ -16,7 +16,7 @@ using MongoDB.Driver;
 /// <summary>
 /// Registers the submission process.
 /// </summary>
-public static class SubmissionServiceCollectionExtensions
+public static class ServiceCollectionExtensions
 {
     /// <summary>
     /// Registers the submission repository and service. The host must also register an <c>IMongoDatabase</c> and an

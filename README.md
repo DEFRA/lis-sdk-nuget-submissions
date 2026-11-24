@@ -123,7 +123,7 @@ The service throws these, so the host's exception handler must map them to probl
 |---|---|
 | `Defra.Livestock.Sdk.Core.Exceptions.NotFoundException` | 404 |
 | `Defra.Livestock.Sdk.Submissions.Exceptions.SubmissionConflictException` | 409 |
-| `Defra.Livestock.Sdk.Submissions.Exceptions.BusinessRuleException`, `ArgumentException`, `BadHttpRequestException` | 400 |
+| `ArgumentException` (including `SubmissionEmptyException` and the validation exceptions), `BadHttpRequestException` | 400 |
 | `Defra.Livestock.Sdk.Core.Exceptions.ServiceUnavailableException` | 503 |
 
 ### Transferring a submission
@@ -173,7 +173,7 @@ A failed or pending transfer does not mark a draft as submitted. Error submissio
 ### Stored documents
 
 Submission ids are `Guid.CreateDisplayHash()` from `Defra.Livestock.Sdk.Core` (`XXX-XXX-XXX`). Callers may send them
-in lower case or with `O`, `I` or `L` for `0` and `1`; `SubmissionHashId.Normalise` reads those as the stored id.
+in lower case or with `O`, `I` or `L` for `0` and `1`; the service reads those as the stored id.
 
 The package registers camel-case element names for its own document types, so documents look the same whatever
 conventions the host registers. The repository creates these indexes on first use:
@@ -241,8 +241,11 @@ The repo uses mainline development. Branch from `main` and name the branch `feat
 
 ## Maintaining public APIs
 
-The library uses `Microsoft.CodeAnalysis.PublicApiAnalyzers`. Update `src/Submissions/PublicAPI.Shipped.txt` in the
-same PR as an API change, and keep `PublicAPI.Unshipped.txt` empty apart from `#nullable enable`.
+The library uses `Microsoft.CodeAnalysis.PublicApiAnalyzers` with a single `src/Submissions/PublicAPI.Shipped.txt`;
+there is no `PublicAPI.Unshipped.txt` in the repo. The analyzer switches itself off without an unshipped file, so the
+build writes an empty one to `obj/` (see the `AddEmptyPublicApiUnshipped` target in `Submissions.csproj`). Update the
+shipped file in the same PR as an API change. IDE code fixes add new entries to the unshipped file, so move anything
+they add into `PublicAPI.Shipped.txt`.
 
 ## Licence
 

@@ -87,7 +87,7 @@ internal sealed class SubmissionTestHost : IAsyncDisposable
             {
                 NotFoundException => StatusCodes.Status404NotFound,
                 ConflictException or SubmissionConflictException => StatusCodes.Status409Conflict,
-                BusinessRuleException or ArgumentException or BadHttpRequestException => StatusCodes.Status400BadRequest,
+                ArgumentException or BadHttpRequestException => StatusCodes.Status400BadRequest,
                 ServiceUnavailableException => StatusCodes.Status503ServiceUnavailable,
                 _ => StatusCodes.Status500InternalServerError,
             };

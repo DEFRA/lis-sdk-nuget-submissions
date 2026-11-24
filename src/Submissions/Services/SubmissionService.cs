@@ -127,7 +127,7 @@ internal sealed partial class SubmissionService(
 
         if (submission.Animals.Count == 0)
         {
-            throw new EmptySubmissionException(submissionId);
+            throw new SubmissionEmptyException(submissionId);
         }
 
         try
