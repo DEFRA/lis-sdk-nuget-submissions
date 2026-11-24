@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 
-/// <summary>Verifies the retention cutoff and protection of non-draft submissions.</summary>
+/// <summary>Verifies independent retention windows and timestamp cutoffs for every submission status.</summary>
 public sealed class SubmissionCleanupServiceTests
 {
     /// <summary>Uses the injected clock and forwards cancellation and deletion count.</summary>
@@ -31,7 +31,7 @@ public sealed class SubmissionCleanupServiceTests
         await repository.Received(1).DeleteExpiredDraftsAsync(now.AddDays(-30).UtcDateTime, token);
     }
 
-    /// <summary>Deletes drafts at thirty days, retaining recent drafts, submissions and errors.</summary>
+    /// <summary>Deletes drafts and errors at thirty days while retaining recent records and submitted records without timestamps.</summary>
     /// <param name="status">The stored status.</param>
     /// <param name="ageDays">The age at cleanup.</param>
     /// <param name="deleted">Whether the document should be deleted.</param>
@@ -41,7 +41,9 @@ public sealed class SubmissionCleanupServiceTests
     [InlineData(SubmissionStatus.Draft, 30, true)]
     [InlineData(SubmissionStatus.Draft, 31, true)]
     [InlineData(SubmissionStatus.Submitted, 60, false)]
-    [InlineData(SubmissionStatus.Error, 60, false)]
+    [InlineData(SubmissionStatus.Error, 29, false)]
+    [InlineData(SubmissionStatus.Error, 30, true)]
+    [InlineData(SubmissionStatus.Error, 31, true)]
     public async Task ShouldRespectAgeAndStatus(string status, int ageDays, bool deleted)
     {
         var now = new DateTimeOffset(2026, 11, 23, 12, 0, 0, TimeSpan.Zero);
@@ -114,8 +116,14 @@ public sealed class SubmissionCleanupServiceTests
         var now = new DateTimeOffset(2026, 11, 23, 12, 0, 0, TimeSpan.Zero);
         var repository = Substitute.For<ISubmissionRepository>();
         var token = TestContext.Current.CancellationToken;
-        var settings = new SubmissionOptions { DraftExpiry = TimeSpan.FromDays(7), ErrorExpiry = TimeSpan.FromDays(90) };
+        var settings = new SubmissionOptions
+        {
+            DraftExpiry = TimeSpan.FromDays(7),
+            SubmittedExpiry = TimeSpan.FromDays(45),
+            ErrorExpiry = TimeSpan.FromDays(90),
+        };
         repository.DeleteExpiredDraftsAsync(now.AddDays(-7).UtcDateTime, token).Returns(2L);
+        repository.DeleteExpiredSubmittedAsync(now.AddDays(-45).UtcDateTime, token).Returns(4L);
         repository.DeleteExpiredErrorsAsync(now.AddDays(-90).UtcDateTime, token).Returns(3L);
         using var service = new SubmissionCleanupService(
             repository,
@@ -123,27 +131,31 @@ public sealed class SubmissionCleanupServiceTests
             NullLogger<SubmissionCleanupService>.Instance,
             Options.Create(settings));
 
-        (await service.CleanupAsync(token)).ShouldBe(5);
+        (await service.CleanupAsync(token)).ShouldBe(9);
 
         await repository.Received(1).DeleteExpiredDraftsAsync(now.AddDays(-7).UtcDateTime, token);
+        await repository.Received(1).DeleteExpiredSubmittedAsync(now.AddDays(-45).UtcDateTime, token);
         await repository.Received(1).DeleteExpiredErrorsAsync(now.AddDays(-90).UtcDateTime, token);
     }
 
-    /// <summary>Never calls error deletion unless error expiry is enabled.</summary>
+    /// <summary>Uses the default thirty-day error window and forwards cancellation.</summary>
     /// <returns>The asynchronous test.</returns>
     [Fact]
-    public async Task ShouldLeaveErrorCleanupDisabledByDefault()
+    public async Task ShouldUseThirtyDayErrorExpiryByDefault()
     {
+        var now = new DateTimeOffset(2026, 11, 24, 12, 0, 0, TimeSpan.Zero);
         var repository = Substitute.For<ISubmissionRepository>();
+        var token = TestContext.Current.CancellationToken;
+        repository.DeleteExpiredErrorsAsync(now.AddDays(-30).UtcDateTime, token).Returns(2L);
         using var service = new SubmissionCleanupService(
             repository,
-            TimeProvider.System,
+            new FixedTimeProvider(now),
             NullLogger<SubmissionCleanupService>.Instance,
             Options.Create(new SubmissionOptions()));
 
-        await service.CleanupAsync(TestContext.Current.CancellationToken);
+        (await service.CleanupAsync(token)).ShouldBe(2);
 
-        await repository.DidNotReceive().DeleteExpiredErrorsAsync(Arg.Any<DateTime>(), Arg.Any<CancellationToken>());
+        await repository.Received(1).DeleteExpiredErrorsAsync(now.AddDays(-30).UtcDateTime, token);
     }
 
     /// <summary>Configured error expiry uses an inclusive cutoff and retains recent errors.</summary>
@@ -175,6 +187,108 @@ public sealed class SubmissionCleanupServiceTests
             new FixedTimeProvider(now),
             NullLogger<SubmissionCleanupService>.Instance,
             Options.Create(new SubmissionOptions { ErrorExpiry = TimeSpan.FromDays(60) }));
+
+        (await service.CleanupAsync(token)).ShouldBe(deleted ? 1 : 0);
+        repository.Stored.Count.ShouldBe(deleted ? 0 : 1);
+    }
+
+    /// <summary>Submitted retention uses the submission timestamp, independently of creation age.</summary>
+    /// <param name="status">The stored status.</param>
+    /// <param name="submittedDaysAgo">The submission age, or null for a missing timestamp.</param>
+    /// <param name="deleted">Whether cleanup should delete the record.</param>
+    /// <returns>The asynchronous test.</returns>
+    [Theory]
+    [InlineData(SubmissionStatus.Submitted, 29, false)]
+    [InlineData(SubmissionStatus.Submitted, 30, true)]
+    [InlineData(SubmissionStatus.Submitted, 31, true)]
+    [InlineData(SubmissionStatus.Submitted, null, false)]
+    [InlineData(SubmissionStatus.Error, 60, false)]
+    public async Task ShouldExpireSubmittedRecordsFromSubmittedDate(string status, int? submittedDaysAgo, bool deleted)
+    {
+        var now = new DateTimeOffset(2026, 11, 24, 12, 0, 0, TimeSpan.Zero);
+        var repository = new InMemorySubmissionRepository();
+        var token = TestContext.Current.CancellationToken;
+        var submission = new SubmissionDocument
+        {
+            Id = "id",
+            HashId = "ABC-DEF-GHJ",
+            Cph = "12/345/6789",
+            CreatedDate = now.AddDays(-90).UtcDateTime,
+            Status = status,
+            SubmittedDate = submittedDaysAgo is { } age ? now.AddDays(-age).UtcDateTime : null,
+        };
+        await repository.TryInsertDraftAsync(submission, token);
+        using var service = new SubmissionCleanupService(
+            repository,
+            new FixedTimeProvider(now),
+            NullLogger<SubmissionCleanupService>.Instance,
+            Options.Create(new SubmissionOptions { ErrorExpiry = TimeSpan.FromDays(120) }));
+
+        (await service.CleanupAsync(token)).ShouldBe(deleted ? 1 : 0);
+        repository.Stored.Count.ShouldBe(deleted ? 0 : 1);
+    }
+
+    /// <summary>The configured submitted retention window is forwarded to storage.</summary>
+    /// <returns>The asynchronous test.</returns>
+    [Fact]
+    public async Task ShouldUseConfiguredSubmittedExpiry()
+    {
+        var now = new DateTimeOffset(2026, 11, 24, 12, 0, 0, TimeSpan.Zero);
+        var repository = Substitute.For<ISubmissionRepository>();
+        var token = TestContext.Current.CancellationToken;
+        repository.DeleteExpiredSubmittedAsync(now.AddDays(-60).UtcDateTime, token).Returns(4L);
+        using var service = new SubmissionCleanupService(
+            repository,
+            new FixedTimeProvider(now),
+            NullLogger<SubmissionCleanupService>.Instance,
+            Options.Create(new SubmissionOptions { SubmittedExpiry = TimeSpan.FromDays(60) }));
+
+        (await service.CleanupAsync(token)).ShouldBe(4);
+
+        await repository.Received(1).DeleteExpiredSubmittedAsync(now.AddDays(-60).UtcDateTime, token);
+    }
+
+    /// <summary>Supports non-day windows and inclusive cutoffs independently for every status.</summary>
+    /// <param name="status">The stored submission status.</param>
+    /// <param name="ageMinutes">The age measured from the relevant timestamp.</param>
+    /// <param name="deleted">Whether the record is expired.</param>
+    /// <returns>The asynchronous test.</returns>
+    [Theory]
+    [InlineData(SubmissionStatus.Draft, 59, false)]
+    [InlineData(SubmissionStatus.Draft, 60, true)]
+    [InlineData(SubmissionStatus.Draft, 61, true)]
+    [InlineData(SubmissionStatus.Submitted, 119, false)]
+    [InlineData(SubmissionStatus.Submitted, 120, true)]
+    [InlineData(SubmissionStatus.Submitted, 121, true)]
+    [InlineData(SubmissionStatus.Error, 179, false)]
+    [InlineData(SubmissionStatus.Error, 180, true)]
+    [InlineData(SubmissionStatus.Error, 181, true)]
+    public async Task ShouldApplyIndependentWindowsInMinutes(string status, int ageMinutes, bool deleted)
+    {
+        var now = new DateTimeOffset(2026, 11, 24, 12, 0, 0, TimeSpan.FromHours(2));
+        var repository = new InMemorySubmissionRepository();
+        var token = TestContext.Current.CancellationToken;
+        var submission = new SubmissionDocument
+        {
+            Id = "id",
+            HashId = "ABC-DEF-GHJ",
+            Cph = "12/345/6789",
+            Status = status,
+            CreatedDate = status == SubmissionStatus.Submitted ? now.AddDays(-90).UtcDateTime : now.AddMinutes(-ageMinutes).UtcDateTime,
+            SubmittedDate = status == SubmissionStatus.Submitted ? now.AddMinutes(-ageMinutes).UtcDateTime : null,
+        };
+        await repository.TryInsertDraftAsync(submission, token);
+        var settings = new SubmissionOptions
+        {
+            DraftExpiry = TimeSpan.FromHours(1),
+            SubmittedExpiry = TimeSpan.FromHours(2),
+            ErrorExpiry = TimeSpan.FromHours(3),
+        };
+        using var service = new SubmissionCleanupService(
+            repository,
+            new FixedTimeProvider(now),
+            NullLogger<SubmissionCleanupService>.Instance,
+            Options.Create(settings));
 
         (await service.CleanupAsync(token)).ShouldBe(deleted ? 1 : 0);
         repository.Stored.Count.ShouldBe(deleted ? 0 : 1);

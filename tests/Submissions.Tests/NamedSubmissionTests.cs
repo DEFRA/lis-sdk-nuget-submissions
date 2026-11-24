@@ -78,7 +78,9 @@ public sealed class NamedSubmissionTests
         submitted.StatusCode.ShouldBe(HttpStatusCode.OK);
         registerTransfer.TransferredIds.ShouldBe([registerId]);
         vetcheckTransfer.TransferredIds.ShouldBeEmpty();
-        register.Stored.ShouldBeEmpty();
+        var confirmed = register.Stored.ShouldHaveSingleItem();
+        confirmed.Status.ShouldBe(SubmissionStatus.Submitted);
+        confirmed.SubmittedDate.ShouldNotBeNull();
         vetcheck.Stored.ShouldHaveSingleItem().HashId.ShouldBe(vetcheckId);
         var endpoints = ((IEndpointRouteBuilder)app).DataSources.SelectMany(source => source.Endpoints).ToArray();
         var names = endpoints.Select(endpoint => endpoint.Metadata.GetMetadata<IEndpointNameMetadata>()!.EndpointName).ToArray();
@@ -107,7 +109,6 @@ public sealed class NamedSubmissionTests
         options.Get("register").CollectionName.ShouldBe("register-submissions");
         options.Get("vetcheck").CollectionName.ShouldBe("vetcheck-submissions");
         options.Get("register").DraftExpiry.ShouldBe(TimeSpan.FromDays(7));
-        options.Get("register").ErrorExpiry.ShouldBeNull();
         options.Get("vetcheck").DraftExpiry.ShouldBe(TimeSpan.FromDays(30));
         options.Get("vetcheck").ErrorExpiry.ShouldBe(TimeSpan.FromDays(60));
         provider.GetRequiredKeyedService<ISubmissionRepository>("register")
@@ -132,7 +133,11 @@ public sealed class NamedSubmissionTests
         services.AddSingleton<TimeProvider>(new FixedTimeProvider(now));
         services.AddKeyedSingleton<ISubmissionRepository>("register", register);
         services.AddKeyedSingleton<ISubmissionRepository>("vetcheck", vetcheck);
-        services.AddNamedSubmissions<NotConfiguredSubmissionTransfer>("register", options => options.DraftExpiry = TimeSpan.FromDays(7));
+        services.AddNamedSubmissions<NotConfiguredSubmissionTransfer>("register", options =>
+        {
+            options.DraftExpiry = TimeSpan.FromDays(7);
+            options.SubmittedExpiry = TimeSpan.FromDays(45);
+        });
         services.AddNamedSubmissions<NotConfiguredSubmissionTransfer>("vetcheck", options => options.ErrorExpiry = TimeSpan.FromDays(60));
         using var provider = services.BuildServiceProvider();
         var workers = provider.GetServices<IHostedService>().OfType<SubmissionCleanupService>().ToArray();
@@ -144,8 +149,10 @@ public sealed class NamedSubmissionTests
         }
 
         await register.Received(1).DeleteExpiredDraftsAsync(now.AddDays(-7).UtcDateTime, token);
-        await register.DidNotReceive().DeleteExpiredErrorsAsync(Arg.Any<DateTime>(), Arg.Any<CancellationToken>());
+        await register.Received(1).DeleteExpiredSubmittedAsync(now.AddDays(-45).UtcDateTime, token);
+        await register.Received(1).DeleteExpiredErrorsAsync(now.AddDays(-30).UtcDateTime, token);
         await vetcheck.Received(1).DeleteExpiredDraftsAsync(now.AddDays(-30).UtcDateTime, token);
+        await vetcheck.Received(1).DeleteExpiredSubmittedAsync(now.AddDays(-30).UtcDateTime, token);
         await vetcheck.Received(1).DeleteExpiredErrorsAsync(now.AddDays(-60).UtcDateTime, token);
     }
 

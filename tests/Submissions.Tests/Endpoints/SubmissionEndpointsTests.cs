@@ -349,11 +349,11 @@ public sealed class SubmissionEndpointsTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Verifies: Submit should delete the submission after confirmed transfer.
+    /// Verifies: Submit should retain the submission with submitted status and a timestamp.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test.</returns>
     [Fact]
-    public async Task SubmitShouldDeleteTheSubmissionAfterConfirmedTransfer()
+    public async Task SubmitShouldRetainTimestampedSubmissionAfterConfirmedTransfer()
     {
         var id = await StartAsync();
         (await PostAsync($"{ListUrl}/{id}/{Animal}", AnimalJson("complete", DateOfBirth))).Dispose();
@@ -364,9 +364,12 @@ public sealed class SubmissionEndpointsTests : IAsyncLifetime
         }
 
         host.Transfer.TransferredIds.ShouldBe([id]);
-        host.Repository.Stored.ShouldBeEmpty();
-        using var response = await Client.GetAsync($"{ListUrl}/{id}", TestContext.Current.CancellationToken);
-        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        var stored = host.Repository.Stored.ShouldHaveSingleItem();
+        stored.Status.ShouldBe(SubmissionStatus.Submitted);
+        stored.SubmittedDate.ShouldNotBeNull();
+        using var body = await GetJsonAsync($"{ListUrl}/{id}");
+        body.RootElement.GetProperty("status").GetString().ShouldBe(SubmissionStatus.Submitted);
+        body.RootElement.GetProperty("submitted-date").GetDateTimeOffset().UtcDateTime.ShouldBe(stored.SubmittedDate.Value);
     }
 
     /// <summary>
@@ -382,7 +385,7 @@ public sealed class SubmissionEndpointsTests : IAsyncLifetime
 
         using var response = await PostAsync($"{ListUrl}/{id}/{Animal}", AnimalJson("draft", DateOfBirth));
 
-        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
     }
 
     /// <summary>

@@ -10,12 +10,12 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 /// <summary>
-/// Deletes expired drafts and optionally errors at startup and hourly, retrying failures on the next pass.
+/// Deletes expired drafts, submitted submissions and optionally errors at startup and hourly, retrying failures on the next pass.
 /// </summary>
 /// <param name="repository">The submission repository.</param>
 /// <param name="timeProvider">The clock used for the retention cutoff and schedule.</param>
 /// <param name="logger">The cleanup logger.</param>
-/// <param name="options">The draft and error expiry windows.</param>
+/// <param name="options">The draft, submitted and error expiry windows.</param>
 internal sealed partial class SubmissionCleanupService(
     ISubmissionRepository repository,
     TimeProvider timeProvider,
@@ -27,10 +27,8 @@ internal sealed partial class SubmissionCleanupService(
         var settings = options.Value;
         var now = timeProvider.GetUtcNow();
         var deleted = await repository.DeleteExpiredDraftsAsync((now - settings.DraftExpiry).UtcDateTime, cancellationToken);
-        if (settings.ErrorExpiry is { } errorExpiry)
-        {
-            deleted += await repository.DeleteExpiredErrorsAsync((now - errorExpiry).UtcDateTime, cancellationToken);
-        }
+        deleted += await repository.DeleteExpiredSubmittedAsync((now - settings.SubmittedExpiry).UtcDateTime, cancellationToken);
+        deleted += await repository.DeleteExpiredErrorsAsync((now - settings.ErrorExpiry).UtcDateTime, cancellationToken);
 
         return deleted;
     }

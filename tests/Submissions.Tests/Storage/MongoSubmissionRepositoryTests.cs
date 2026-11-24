@@ -334,6 +334,26 @@ public sealed class MongoSubmissionRepositoryTests
             Arg.Is<FilterDefinition<SubmissionDocument>>(filter => filter.Render(renderArgs).Equals(expected)), token);
     }
 
+    /// <summary>Deletes submitted records using a real submission timestamp, never creation age or missing timestamps.</summary>
+    /// <returns>The asynchronous test.</returns>
+    [Fact]
+    public async Task ShouldDeleteOnlyExpiredSubmittedRecordsWithTimestamps()
+    {
+        var cutoff = new DateTime(2026, 10, 25, 12, 0, 0, DateTimeKind.Utc);
+        collection.DeleteManyAsync(Arg.Any<FilterDefinition<SubmissionDocument>>(), token)
+            .Returns(new DeleteResult.Acknowledged(2));
+
+        (await repository.DeleteExpiredSubmittedAsync(cutoff, token)).ShouldBe(2);
+
+        var expected = new BsonDocument
+        {
+            { "status", "SUBMITTED" },
+            { "submittedDate", new BsonDocument { { "$ne", BsonNull.Value }, { "$lte", new BsonDateTime(cutoff) } } },
+        };
+        await collection.Received(1).DeleteManyAsync(
+            Arg.Is<FilterDefinition<SubmissionDocument>>(filter => filter.Render(renderArgs).Equals(expected)), token);
+    }
+
     private static MongoWriteException CreateWriteException(ServerErrorCategory category, int code)
     {
         // The driver exposes WriteError but keeps its constructor internal.

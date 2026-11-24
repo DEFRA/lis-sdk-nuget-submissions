@@ -35,7 +35,7 @@ Defra.Livestock.Sdk.Submissions.Services.ISubmissionService.StartAsync(string! c
 const Defra.Livestock.Sdk.Submissions.Models.SubmissionStatus.Error = "ERROR" -> string!
 Defra.Livestock.Sdk.Submissions.SubmissionOptions.DraftExpiry.get -> System.TimeSpan
 Defra.Livestock.Sdk.Submissions.SubmissionOptions.DraftExpiry.set -> void
-Defra.Livestock.Sdk.Submissions.SubmissionOptions.ErrorExpiry.get -> System.TimeSpan?
+Defra.Livestock.Sdk.Submissions.SubmissionOptions.ErrorExpiry.get -> System.TimeSpan
 Defra.Livestock.Sdk.Submissions.SubmissionOptions.ErrorExpiry.set -> void
 static Defra.Livestock.Sdk.Submissions.SubmissionServiceCollectionExtensions.AddNamedSubmissions<TTransfer>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, string! name, System.Action<Defra.Livestock.Sdk.Submissions.SubmissionOptions!>? configure = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
 static Defra.Livestock.Sdk.Submissions.Endpoints.SubmissionEndpoints.MapNamedSubmissionEndpoints(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! app, string! name, string! routePrefix) -> Microsoft.AspNetCore.Routing.RouteGroupBuilder!
@@ -93,3 +93,5 @@ Defra.Livestock.Sdk.Submissions.Models.SubmissionTransferRequest.CreatedDate.get
 Defra.Livestock.Sdk.Submissions.Models.SubmissionTransferRequest.CreatedDate.init -> void
 Defra.Livestock.Sdk.Submissions.Models.SubmissionTransferRequest.Animals.get -> System.Collections.Generic.IReadOnlyCollection<Defra.Livestock.Sdk.Submissions.Models.AnimalResponse!>!
 Defra.Livestock.Sdk.Submissions.Models.SubmissionTransferRequest.Animals.init -> void
+Defra.Livestock.Sdk.Submissions.SubmissionOptions.SubmittedExpiry.get -> System.TimeSpan
+Defra.Livestock.Sdk.Submissions.SubmissionOptions.SubmittedExpiry.set -> void

@@ -12,7 +12,7 @@ using Defra.Livestock.Sdk.Submissions.Models;
 public interface ISubmissionTransfer
 {
     /// <summary>
-    /// Transfers the submission. Successful completion confirms downstream receipt and permits local deletion. Throw <see cref="Core.Exceptions.ServiceUnavailableException"/> when the downstream
+    /// Transfers the submission. Successful completion confirms downstream receipt; the SDK retains the submitted record until its retention window expires. Throw <see cref="Core.Exceptions.ServiceUnavailableException"/> when the downstream
     /// service cannot take it right now, so the submission stays a draft and the caller can try again.
     /// </summary>
     /// <param name="submission">The draft being submitted.</param>

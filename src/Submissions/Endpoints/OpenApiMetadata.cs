@@ -54,7 +54,7 @@ internal static class OpenApiMetadata
     {
         public const string Name = "SubmitSubmission";
         public const string Summary = "Submits a draft.";
-        public const string Description = "Transfers the draft for the CPH supplied as county, parish and holding route segments downstream and deletes the local submission after confirmed receipt. 400 when it has no animals, 404 when it is unknown or belongs to another CPH, 409 when it has already been submitted or was changed by another request, 503 when the downstream service is unavailable, in which case the submission stays a draft.";
+        public const string Description = "Transfers the draft for the CPH supplied as county, parish and holding route segments downstream and marks the local submission as submitted with a timestamp after confirmed receipt. 400 when it has no animals, 404 when it is unknown or belongs to another CPH, 409 when it has already been submitted or was changed by another request, 503 when the downstream service is unavailable, in which case the submission stays a draft.";
     }
 
     public static class ListSubmissions

@@ -21,8 +21,12 @@ public sealed class SubmissionOptions
     public TimeSpan DraftExpiry { get; set; } = TimeSpan.FromDays(30);
 
     /// <summary>
-    /// Gets or sets the maximum error submission age from creation. Null disables error cleanup (the default).
-    /// A configured window must be positive.
+    /// Gets or sets the submitted retention window from the submission timestamp. Defaults to 30 days and must be positive.
     /// </summary>
-    public TimeSpan? ErrorExpiry { get; set; }
+    public TimeSpan SubmittedExpiry { get; set; } = TimeSpan.FromDays(30);
+
+    /// <summary>
+    /// Gets or sets the maximum error submission age from creation. Defaults to 30 days and must be positive.
+    /// </summary>
+    public TimeSpan ErrorExpiry { get; set; } = TimeSpan.FromDays(30);
 }

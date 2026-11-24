@@ -81,7 +81,7 @@ public interface ISubmissionService
     Task DeleteAnimalAsync(string cph, string submissionId, string animalId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Transfers a draft downstream and deletes it after confirmed receipt and saving the submitted state.
+    /// Transfers a draft downstream and retains it with submitted status and a timestamp after confirmed receipt.
     /// </summary>
     /// <param name="cph">The county/parish/holding number.</param>
     /// <param name="submissionId">The submission id.</param>

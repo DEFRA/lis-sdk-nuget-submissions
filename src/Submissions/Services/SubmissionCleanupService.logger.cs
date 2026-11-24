@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 /// </content>
 internal sealed partial class SubmissionCleanupService
 {
-    [LoggerMessage(LogLevel.Information, "Deleted {Count} expired draft or error submissions.")]
+    [LoggerMessage(LogLevel.Information, "Deleted {Count} expired submissions.")]
     private partial void LogCleanedUpDrafts(long count);
 
     [LoggerMessage(LogLevel.Warning, "Unable to clean up expired submissions. The next hourly pass retries.")]

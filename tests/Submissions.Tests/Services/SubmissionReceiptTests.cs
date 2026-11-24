@@ -11,13 +11,13 @@ using Defra.Livestock.Sdk.Submissions.Storage;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 
-/// <summary>Verifies that deletion requires a confirmed transfer and successful state persistence.</summary>
+/// <summary>Verifies successful transfers are timestamped and retained for scheduled cleanup.</summary>
 public sealed class SubmissionReceiptTests
 {
     /// <summary>Retains a pending submission until the transfer task confirms receipt.</summary>
     /// <returns>The asynchronous test.</returns>
     [Fact]
-    public async Task ShouldWaitForReceiptBeforeSavingAndDeleting()
+    public async Task ShouldWaitForReceiptBeforeSavingSubmittedState()
     {
         var repository = Substitute.For<ISubmissionRepository>();
         var transfer = Substitute.For<ISubmissionTransfer>();
@@ -26,7 +26,6 @@ public sealed class SubmissionReceiptTests
         var receipt = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         repository.GetByHashIdAsync(submission.HashId, token).Returns(submission);
         repository.TryReplaceDraftAsync(submission, 0, token).Returns(true);
-        repository.DeleteSubmittedAsync(submission.Id, 1, token).Returns(true);
         transfer.TransferAsync(Arg.Any<SubmissionTransferRequest>(), token).Returns(receipt.Task);
         var service = new SubmissionService(repository, transfer, TimeProvider.System, NullLogger<SubmissionService>.Instance);
 
@@ -42,7 +41,8 @@ public sealed class SubmissionReceiptTests
         submission.Status.ShouldBe(SubmissionStatus.Submitted);
         submission.SubmittedDate.ShouldNotBeNull();
         await repository.Received(1).TryReplaceDraftAsync(submission, 0, token);
-        await repository.Received(1).DeleteSubmittedAsync(submission.Id, 1, token);
+        await repository.DidNotReceive().DeleteSubmittedAsync(Arg.Any<string>(), Arg.Any<int>(), token);
+        await repository.DidNotReceive().DeleteExpiredSubmittedAsync(Arg.Any<DateTime>(), token);
     }
 
     /// <summary>A failed state save must not trigger deletion after transfer.</summary>

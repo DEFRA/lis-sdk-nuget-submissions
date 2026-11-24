@@ -110,6 +110,21 @@ internal sealed class InMemorySubmissionRepository : ISubmissionRepository
         return Task.FromResult(deleted);
     }
 
+    public Task<long> DeleteExpiredSubmittedAsync(DateTime cutoffUtc, CancellationToken cancellationToken = default)
+    {
+        long deleted = 0;
+        foreach (var submission in All().Where(s => s.Status == SubmissionStatus.Submitted
+            && s.SubmittedDate != null && s.SubmittedDate <= cutoffUtc))
+        {
+            if (stored.TryRemove(submission.Id, out _))
+            {
+                deleted++;
+            }
+        }
+
+        return Task.FromResult(deleted);
+    }
+
     public Task<bool> DeleteSubmittedAsync(string id, int expectedVersion, CancellationToken cancellationToken = default)
     {
         if (!stored.TryGetValue(id, out var bytes))

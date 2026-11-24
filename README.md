@@ -73,7 +73,7 @@ and MongoDB documents are internal implementation details.
 Outside HTTP endpoints, resolve the installation's service from a scope using
 `scope.ServiceProvider.GetRequiredKeyedService<ISubmissionService>("register")`. Its options are available through
 `IOptionsMonitor<SubmissionOptions>.Get("register")`. Named routes resolve only their corresponding service, so
-start/resume, list, animal updates, transfer, and confirmed-receipt deletion stay within that installation.
+start/resume, list, animal updates, transfer, and retention cleanup stay within that installation.
 
 ### Endpoints
 
@@ -87,7 +87,7 @@ All take the CPH as `{county}/{parish}/{holding}` route segments.
 | GET | `/submission/{cph}/{submissionId}/{animalId}` | Returns an animal's status and data |
 | POST, PATCH | `/submission/{cph}/{submissionId}/{animalId}` | Replaces an animal's status and data, adding it if new |
 | DELETE | `/submission/{cph}/{submissionId}/{animalId}` | Removes an animal from a draft |
-| POST | `/submission/{cph}/{submissionId}` | Transfers the draft through `ISubmissionTransfer` and deletes it after confirmed receipt |
+| POST | `/submission/{cph}/{submissionId}` | Transfers the draft and saves submitted status and timestamp |
 
 ### Example URLs
 
@@ -110,7 +110,7 @@ With the named installations above hosted at `https://localhost:5001`, CPH `12/3
 
 Use the submission id returned by that installation's start response in subsequent requests. A register submission
 id cannot be used to resume or access a vetcheck submission. Omitting `key` resumes the latest draft for that CPH,
-creating one only when none exists. Successful transfer confirms receipt and deletes the local submission.
+creating one only when none exists. Successful transfer confirms receipt and retains the local submission with `SUBMITTED` status and `SubmittedDate`.
 
 For the default installation mapped with `app.MapSubmissionEndpoints()`, the equivalent start URL is
 `https://localhost:5001/submission/12/345/6789/start`. Replace the example host and port with your service's address.
@@ -144,25 +144,31 @@ implementations are no longer a public extension point; configure MongoDB throug
 
 ### Cleanup
 
-`AddSubmissions()` registers a background service that cleans up at startup and hourly thereafter. Expiry uses
-`CreatedDate` in UTC, not time since the last edit. Drafts expire after 30 days by default. Error submissions are
-retained indefinitely unless `ErrorExpiry` is configured. Both configured windows must be positive.
+`AddSubmissions()` registers a background service that cleans up at startup and hourly thereafter:
+
+| Status | Retention option | Default | Age measured from |
+|---|---|---|---|
+| Draft | `DraftExpiry` | 30 days | `CreatedDate` |
+| Submitted | `SubmittedExpiry` | 30 days | `SubmittedDate` |
+| Error | `ErrorExpiry` | 30 days | `CreatedDate` |
+
+All dates use UTC. Configured windows must be positive. Failed cleanup passes are logged and retried hourly.
+Submitted records without a submission timestamp are retained rather than guessing their age.
 
 ```csharp
 services.AddSubmissions(options =>
 {
     options.DraftExpiry = TimeSpan.FromDays(30);
-    options.ErrorExpiry = null; // Keep errors indefinitely; set a TimeSpan to enable expiry.
+    options.SubmittedExpiry = TimeSpan.FromDays(30);
+    options.ErrorExpiry = TimeSpan.FromDays(30);
 });
 ```
 
-Draft and error cleanup match only their respective statuses. Submitted and other statuses are retained by
-age-based cleanup. Failed cleanup passes are logged and retried on the next hourly pass.
-
-Successful completion of `ISubmissionTransfer.TransferAsync` confirms downstream receipt. The service saves the
-`SUBMITTED` state and then deletes that exact version of the submission. A failed or pending transfer does not
-trigger deletion. After successful submission, fetching or resuming that id returns 404. Existing submitted records
-are retained; they are not assumed to have a confirmed receipt merely because they are old.
+The same options can be configured independently for each `AddNamedSubmissions` installation.
+Successful completion of `ISubmissionTransfer.TransferAsync` confirms downstream receipt. The service saves
+`SUBMITTED` status and the current UTC `SubmittedDate`, retaining the record for inspection until cleanup runs
+at or after its submitted retention window. Submitted records remain readable but cannot be edited or resumed.
+A failed or pending transfer does not mark a draft as submitted. Error submissions follow their configured creation-age retention window.
 
 ### Stored documents
 

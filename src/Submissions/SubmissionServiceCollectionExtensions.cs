@@ -33,7 +33,8 @@ public static class SubmissionServiceCollectionExtensions
 
         var options = services.AddOptions<SubmissionOptions>()
             .Validate(value => value.DraftExpiry > TimeSpan.Zero, "DraftExpiry must be positive.")
-            .Validate(value => value.ErrorExpiry is null || value.ErrorExpiry > TimeSpan.Zero, "ErrorExpiry must be positive when configured.")
+            .Validate(value => value.SubmittedExpiry > TimeSpan.Zero, "SubmittedExpiry must be positive.")
+            .Validate(value => value.ErrorExpiry > TimeSpan.Zero, "ErrorExpiry must be positive.")
             .ValidateOnStart();
         if (configure is not null)
         {
@@ -72,7 +73,8 @@ public static class SubmissionServiceCollectionExtensions
         var options = services.AddOptions<SubmissionOptions>(name)
             .PostConfigure(value => value.CollectionName = name + "-submissions")
             .Validate(value => value.DraftExpiry > TimeSpan.Zero, "DraftExpiry must be positive.")
-            .Validate(value => value.ErrorExpiry is null || value.ErrorExpiry > TimeSpan.Zero, "ErrorExpiry must be positive when configured.")
+            .Validate(value => value.SubmittedExpiry > TimeSpan.Zero, "SubmittedExpiry must be positive.")
+            .Validate(value => value.ErrorExpiry > TimeSpan.Zero, "ErrorExpiry must be positive when configured.")
             .ValidateOnStart();
         if (configure is not null)
         {

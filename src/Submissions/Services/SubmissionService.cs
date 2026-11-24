@@ -145,11 +145,6 @@ internal sealed partial class SubmissionService(
         submission.SubmittedDate = timeProvider.GetUtcNow().UtcDateTime;
         await SaveAsync(submission, cancellationToken);
 
-        if (!await repository.DeleteSubmittedAsync(submission.Id, submission.Version, cancellationToken))
-        {
-            throw new SubmissionChangedException(submission.HashId);
-        }
-
         LogSubmittedSubmission(submissionId, submission.Animals.Count);
     }
 

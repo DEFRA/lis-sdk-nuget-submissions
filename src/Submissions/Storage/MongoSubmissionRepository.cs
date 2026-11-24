@@ -102,6 +102,15 @@ internal sealed partial class MongoSubmissionRepository : ISubmissionRepository
         return result.DeletedCount;
     }
 
+    public async Task<long> DeleteExpiredSubmittedAsync(DateTime cutoffUtc, CancellationToken cancellationToken = default)
+    {
+        var result = await collection.DeleteManyAsync(
+            submission => submission.Status == SubmissionStatus.Submitted
+                && submission.SubmittedDate != null && submission.SubmittedDate <= cutoffUtc,
+            cancellationToken);
+        return result.DeletedCount;
+    }
+
     public async Task<bool> DeleteSubmittedAsync(string id, int expectedVersion, CancellationToken cancellationToken = default)
     {
         var result = await collection.DeleteOneAsync(

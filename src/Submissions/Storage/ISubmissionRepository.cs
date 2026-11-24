@@ -70,4 +70,10 @@ internal interface ISubmissionRepository
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The number of deleted errors.</returns>
     Task<long> DeleteExpiredErrorsAsync(DateTime cutoffUtc, CancellationToken cancellationToken = default);
+
+    /// <summary>Deletes submitted records whose submission timestamp is on or before the cutoff. Missing timestamps are retained.</summary>
+    /// <param name="cutoffUtc">The inclusive UTC submission timestamp cutoff.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The number of deleted submissions.</returns>
+    Task<long> DeleteExpiredSubmittedAsync(DateTime cutoffUtc, CancellationToken cancellationToken = default);
 }
