@@ -229,23 +229,36 @@ dotnet test --solution Submissions.slnx
 
 ## Pipelines
 
-The workflows are the same as [lis-sdk-nuget-core](https://github.com/DEFRA/lis-sdk-nuget-core#pipelines): prereleases
-from `feature/**` and `hotfix/**` branches, validation on pull requests, a stable release on merge to `main`, and a
-tag-triggered NuGet publish. NuGet's trusted publishing policy must use repository owner `DEFRA`, repository
-`lis-sdk-nuget-submissions`, workflow filename `publish.yml` and environment `release`.
+GitHub Actions use the composite actions under `actions/` in `DEFRA/lis-github-actions`. Every workflow pins these actions to the `v0.11.0` release commit (`5f5557f64c1344efb6ed44e482452f9cfe6bea51`). Update all `uses:` references together when moving to a newer release.
+
+| Workflow | Trigger | Configured behaviour |
+|---|---|---|
+| [Prerelease](https://github.com/DEFRA/lis-sdk-nuget-submissions/blob/main/.github/workflows/prerelease.yml) | Push to `feature/**` or `hotfix/**` | Calculate a prerelease version, validate and run Sonar analysis, then tag the commit when validation succeeds and the quality gate passes |
+| [Pull Request Validation](https://github.com/DEFRA/lis-sdk-nuget-submissions/blob/main/.github/workflows/pull-request.yml) | Pull request opened, updated or reopened against `main` | Calculate a prospective version, validate and run Sonar analysis; aggregate the job results into a required check |
+| [Release](https://github.com/DEFRA/lis-sdk-nuget-submissions/blob/main/.github/workflows/release.yml) | Pull request merged into `main` | Calculate a stable version, validate and run Sonar analysis, then tag the merged commit when validation succeeds and the quality gate passes |
+| [Publish](https://github.com/DEFRA/lis-sdk-nuget-submissions/blob/main/.github/workflows/publish.yml) | Push of a tag matching `*.*.*` | Run the central composite NuGet publishing action in a local job |
+
+NuGet's trusted publishing policy must use repository owner `DEFRA`, repository `lis-sdk-nuget-submissions`, workflow filename `publish.yml`, and environment `release`. The `NUGET_USERNAME` secret identifies the policy creator. The publishing job stays in this repository because NuGet rejects authentication inside a reusable workflow hosted in another repository.
+
+Publishing requires an artifact built from the tagged commit by a successful prerelease or release workflow. The artifact records its commit, version, workflow run and attempt; publishing waits for that attempt to finish successfully before authenticating with NuGet.
+
+Dependabot branches receive patch versions. Their PR validation versions use the label `dependabot-alpha.<run>.<attempt>`; feature and hotfix prereleases require an LREG ticket.
 
 ## Branching policy
 
-The repo uses mainline development. Branch from `main` and name the branch `feature/LREG-<ticket>-<description>` or
-`hotfix/LREG-<ticket>-<description>`. Rebase onto `main` rather than merging `main` in.
+The repo uses mainline development. Branch from `main` and name the branch:
 
-## Maintaining public APIs
+- `feature/LREG-<ticket>-<short-kebab-description>`
+- `hotfix/LREG-<ticket>-<short-kebab-description>`
 
-The library uses `Microsoft.CodeAnalysis.PublicApiAnalyzers` with a single `src/Submissions/PublicAPI.Shipped.txt`;
-there is no `PublicAPI.Unshipped.txt` in the repo. The analyzer switches itself off without an unshipped file, so the
-build writes an empty one to `obj/` (see the `AddEmptyPublicApiUnshipped` target in `Submissions.csproj`). Update the
-shipped file in the same PR as an API change. IDE code fixes add new entries to the unshipped file, so move anything
-they add into `PublicAPI.Shipped.txt`.
+`LREG` must be uppercase, because the GitHub ruleset rejects other branch names. Rebase onto `main`
+rather than merging `main` in.
+
+## Contributing to this project
+
+- Follow the [Defra software development standards](https://github.com/DEFRA/software-development-standards).
+- Code style is configured in `.editorconfig` and `stylecop.json`, with StyleCop and .NET analyzers enabled during builds. Warnings are treated as errors. Run `dotnet format Submissions.slnx --verify-no-changes` to check formatting locally.
+- Open a pull request against `main`. CI must pass and the Sonar quality gate must be green before merge.
 
 ## Licence
 
@@ -256,3 +269,19 @@ THIS INFORMATION IS LICENSED UNDER THE CONDITIONS OF THE OPEN GOVERNMENT LICENCE
 The following attribution statement MUST be cited in your products and applications when using this information.
 
 > Contains public sector information licensed under the Open Government licence v3
+
+### About the licence
+
+The Open Government Licence (OGL) was developed by the Controller of His Majesty's Stationery Office (HMSO) to enable information providers in the public sector to license the use and re-use of their information under a common open licence.
+
+It is designed to encourage use and re-use of information freely and flexibly, with only a few conditions.
+
+## Maintaining code analysis and public APIs
+
+The build runs the .NET 10 recommended analyzer rules, StyleCop and SonarAnalyzer. Tests also receive xUnit analyzers through `xunit.v3`. Analyzer warnings are treated as errors; CA1707 is disabled for test code to allow descriptive names with underscores.
+
+The library uses `Microsoft.CodeAnalysis.PublicApiAnalyzers` to track its public surface, including nullability and default parameter values. These files make API changes visible during review and help catch accidental changes to the contract used by consuming services.
+
+Every merged PR to `main` enters the release pipeline, so there is no separate release preparation step. Update `src/Submissions/PublicAPI.Shipped.txt` in the same PR as the API change: it records the API contract that will be released on merge. Include both new types and their public members; for example, a new exception needs entries for both the type and its public constructor. The RS0016 code fix can generate declarations in `src/Submissions/PublicAPI.Unshipped.txt`; move those additions into the shipped file before merging.
+
+Keep `PublicAPI.Unshipped.txt` empty apart from `#nullable enable` unless it contains intentional `*REMOVED*` entries. Retain `#nullable enable` at the top of both files. Preserve previously shipped declarations as the compatibility record, and represent intentional removals using `*REMOVED*` entries in the unshipped file. Review breaking changes explicitly, since consuming services can still depend on earlier package versions.
